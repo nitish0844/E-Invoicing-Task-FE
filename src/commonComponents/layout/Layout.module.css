@@ -1,0 +1,24 @@
+.flexLayout {
+  display: flex;
+  /* height: 95vh; */
+  flex-direction: column;
+  align-items: center;
+}
+.navbarList {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.footer {
+  height: 100%;
+  display: flex;
+  justify-content: flex-end;
+  flex-direction: column;
+}
+.headerRoot {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+}
