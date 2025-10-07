@@ -1,11 +1,14 @@
-import { Alert, Badge, Button, Card, Container, Drawer, Grid, Group, Menu, Paper, Progress, Stack, Table, Text, Title } from '@mantine/core'
+import { Alert, Badge, Button, Card, Container, Drawer, Grid, Group, Menu, Paper, Progress, Stack, Table, Text, TextInput, Title } from '@mantine/core'
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { AlertCircle, CheckCircle, Copy, Database, FileText, Info, Mail, Share2 } from 'lucide-react';
 import { displayNotification } from '../../commonComponents/notifications/displayNotification';
 import { getAllDataV4 } from '../../services/common.service';
 import { postAPICall } from '../../services/apiCall';
+import { useState } from 'react';
 
 const AnalyseDrawer = ({ rowId, opened, onClose }) => {
+    const [showMailInput, setShowMailInput] = useState(false);
+    const [email, setEmail] = useState("");
 
     const analyseQuery = useQuery({
         queryKey: ["analyse-data"],
@@ -16,23 +19,6 @@ const AnalyseDrawer = ({ rowId, opened, onClose }) => {
         enabled: !!rowId,
         refetchOnWindowFocus: true,
     })
-
-//     const analyseMutation = useMutation({
-//     mutationKey: ["analyse-data"],
-//     mutationFn: (body) => postAPICall("analyze", { body, returnObject: true }),
-//     onSuccess: (res) => {
-//       if (res?.status === "success") {
-//         setResultsData(res.data); // store API response
-//         setActiveStep(2); // move to Results step
-//         setAnalyse({
-//           ...analyse,
-//           report_Id: res?.data?.id
-//         })
-//       } else {
-//         displayNotification({ message: res?.message || "Analysis failed", variant: "error" });
-    //       }
-    //     },
-    //   });
 
     const sendMailMutate = useMutation({
         mutationFn: (body) => postAPICall("email/send", { body, returnObject: true }),
@@ -47,6 +33,10 @@ const AnalyseDrawer = ({ rowId, opened, onClose }) => {
                 message: err || "Failed to send email",
                 variant: "error",
             });
+        },
+        onSettled: () => {
+            setShowMailInput(false);
+            setEmail('');
         }
     });
 
@@ -90,6 +80,17 @@ const AnalyseDrawer = ({ rowId, opened, onClose }) => {
 
     const getScoreColor = (score) => (score >= 80 ? "green" : score >= 60 ? "yellow" : "red");
 
+    const handleSendMail = () => {
+        sendMailMutate.mutate({
+            to: email,
+            subject: "Invoice Analysis Report",
+            body: `Please find the Invoice Analysis Report attached below. \n\nReport ID: ${analyseQuery?.data?.id}`,
+            attachments: [analyseQuery?.data?.downloadUrl],
+        });
+    };
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     return (
         <Drawer opened={opened} onClose={onClose} size="xl" position="right" overlayProps={{ backgroundOpacity: 0.2, blur: 2 }}>
             <Container size="xl">
@@ -104,7 +105,7 @@ const AnalyseDrawer = ({ rowId, opened, onClose }) => {
                             {/* <Button variant="default" leftSection={<Download size={18} />} onClick={() => downLoadPdfMutate.mutate()}>
                                 Download Report
                             </Button> */}
-                            <Menu shadow="md" width={200}>
+                            <Menu shadow="md" width={200} closeOnItemClick={false}>
                                 <Menu.Target>
                                     <Button leftSection={<Share2 size={18} />} variant="default">
                                         Share
@@ -135,18 +136,29 @@ const AnalyseDrawer = ({ rowId, opened, onClose }) => {
                                     <Menu.Item
                                         icon={<Mail size={16} />}
                                         onClick={() => {
-                                            if (analyseQuery?.data?.downloadUrl) {
-                                                sendMailMutate.mutate({
-                                                    to: "nitishcooper@gmail.com", 
-                                                    subject: "Invoice Analysis Report",
-                                                    body: `Please find the Invoice Analysis Report attached below. \n\nReport ID: ${analyseQuery?.data?.id}`,
-                                                    attachments: [analyseQuery?.data?.downloadUrl],
-                                                });
-                                            }
+                                            setShowMailInput(true);
                                         }}
                                     >
                                         Send Mail
                                     </Menu.Item>
+
+                                    {showMailInput && (
+                                        <div style={{ padding: '10px' }}>
+                                            <Group gap="xs">
+                                                <TextInput
+                                                    placeholder="Enter email"
+                                                    size="xs"
+                                                    value={email}
+                                                    type='email'
+                                                    onChange={(e) => setEmail(e.currentTarget.value)}
+                                                    style={{ flex: 1 }}
+                                                />
+                                                <Button size="xs" onClick={handleSendMail} loading={sendMailMutate.isPending} disabled={!emailRegex.test(email)}>
+                                                    Send
+                                                </Button>
+                                            </Group>
+                                        </div>
+                                    )}
                                 </Menu.Dropdown>
                             </Menu>
                         </Group>

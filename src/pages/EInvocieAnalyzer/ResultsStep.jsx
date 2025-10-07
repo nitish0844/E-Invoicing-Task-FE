@@ -1,7 +1,8 @@
 import {
     Container, Stack, Title, Text, Group, Button, Badge, Paper, Card,
     Grid, Table, Alert, Progress,
-    Menu
+    Menu,
+    TextInput
 } from "@mantine/core";
 import { FileText, Download, CheckCircle, Database, Info, AlertCircle, Share2, Copy, Mail } from "lucide-react";
 import useAnalyseStore from "../../store/analyseStore";
@@ -9,9 +10,33 @@ import { useMutation } from "@tanstack/react-query";
 import { getAllDataV4 } from "../../services/common.service";
 import { displayNotification } from "../../commonComponents/notifications/displayNotification";
 import exportData from '../../commonComponents/components/export/export';
+import { useState } from "react";
+import { postAPICall } from "../../services/apiCall";
 
 const ResultsStep = ({ mockResults, mockTableData, getScoreColor, getReadinessLabel, setActiveStep, setUploadComplete }) => {
     const { resetAnalyse, analyse } = useAnalyseStore();
+    const [showMailInput, setShowMailInput] = useState(false);
+    const [email, setEmail] = useState("");
+
+    const sendMailMutate = useMutation({
+        mutationFn: (body) => postAPICall("email/send", { body, returnObject: true }),
+        onSuccess: (res) => {
+            displayNotification({
+                message: res?.message || "Email sent successfully",
+                variant: "success",
+            });
+        },
+        onError: (err) => {
+            displayNotification({
+                message: err || "Failed to send email",
+                variant: "error",
+            });
+        },
+        onSettled: () => {
+            setShowMailInput(false);
+            setEmail('');
+        }
+    });
 
     // Prepare coverage arrays
     const coverage = {
@@ -60,6 +85,18 @@ const ResultsStep = ({ mockResults, mockTableData, getScoreColor, getReadinessLa
         },
     });
 
+    const handleSendMail = () => {
+        sendMailMutate.mutate({
+            to: email,
+            subject: "Invoice Analysis Report",
+            body: `Please find the Invoice Analysis Report attached below. \n\nReport ID: ${mockResults?.id}`,
+            attachments: [mockResults?.downloadUrl],
+        });
+        // call your API here
+    };
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     return (
         <Container size="xl">
             <Stack gap="xl">
@@ -104,13 +141,29 @@ const ResultsStep = ({ mockResults, mockTableData, getScoreColor, getReadinessLa
                                 <Menu.Item
                                     icon={<Mail size={16} />}
                                     onClick={() => {
-                                        const subject = encodeURIComponent("Check out this report");
-                                        const body = encodeURIComponent(`Here is the link to the report: ${window.location.href}`);
-                                        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+                                        setShowMailInput(true);
                                     }}
                                 >
                                     Send Mail
                                 </Menu.Item>
+
+                                {showMailInput && (
+                                    <div style={{ padding: '10px' }}>
+                                        <Group gap="xs">
+                                            <TextInput
+                                                placeholder="Enter email"
+                                                size="xs"
+                                                value={email}
+                                                type="email"
+                                                onChange={(e) => setEmail(e.currentTarget.value)}
+                                                style={{ flex: 1 }}
+                                            />
+                                            <Button size="xs" onClick={handleSendMail} loading={sendMailMutate.isPending} disabled={!emailRegex.test(email)}>
+                                                Send
+                                            </Button>
+                                        </Group>
+                                    </div>
+                                )}
                             </Menu.Dropdown>
                         </Menu>
                     </Group>

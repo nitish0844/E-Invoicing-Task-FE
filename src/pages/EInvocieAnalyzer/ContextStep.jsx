@@ -15,9 +15,9 @@ const ContextStep = ({ country, setCountry, erp, setErp, technicalReadiness, set
                             label="Country / Region"
                             placeholder="Select country"
                             data={[
-                                { value: 'uae', label: 'UAE (United Arab Emirates)' },
-                                { value: 'ksa', label: 'KSA (Saudi Arabia)' },
-                                { value: 'my', label: 'Malaysia' },
+                                { value: 'UAE (United Arab Emirates)', label: 'UAE (United Arab Emirates)' },
+                                { value: 'KSA (Saudi Arabia)', label: 'KSA (Saudi Arabia)' },
+                                { value: 'Malaysia', label: 'Malaysia' },
                                 { value: 'other', label: 'Other' }
                             ]}
                             value={country}
