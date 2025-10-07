@@ -80,8 +80,3 @@ curl --request POST   --url https://e-invoicing-task-be.onrender.com/auth/regist
 - Ensure the backend is running before using the frontend.  
 - Authentication is required to access most features.  
 - Use Postman or Insomnia for testing API endpoints if needed.  
-
----
-
-## License
-Specify your license here (e.g., MIT).
