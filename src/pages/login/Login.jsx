@@ -212,7 +212,7 @@ const Login = () => {
             w={250}
             fit="contain"
           />
-          <Text size="md" fw={600} c="primary.9">
+          <Text size="lg" fw={600} c="primary.9">
             E-Invocie Analyzer
           </Text>
           <Text mt="xs" mb="xs" size="20px">

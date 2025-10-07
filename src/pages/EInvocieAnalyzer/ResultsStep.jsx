@@ -110,7 +110,7 @@ const ResultsStep = ({ mockResults, mockTableData, getScoreColor, getReadinessLa
                         <Button variant="default" leftSection={<Download size={18} />} onClick={() => downLoadPdfMutate.mutate()}>
                             Download Report
                         </Button>
-                        <Menu shadow="md" width={200}>
+                        <Menu shadow="md" width={200} closeOnItemClick={false}>
                             <Menu.Target>
                                 <Button leftSection={<Share2 size={18} />} variant="default">
                                     Share
